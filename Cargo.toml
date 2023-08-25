@@ -9,3 +9,9 @@ edition = "2021"
 axum = "0.6.20"
 tokio = { version = "1.32.0", features = ["full"] }
 tower = "0.4.13"
+diesel = "2.1.0"
+dotenvy = "0.15.7"
+bb8 = "0.8.1"
+diesel-async = { version = "0.3.2", features = ["postgres", "bb8"] }
+serde = { version = "1.0.186", features = ["derive"] }
+argon2 = "0.5.1"
