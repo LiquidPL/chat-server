@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
@@ -8,7 +10,7 @@ use hyper::StatusCode;
 use crate::{
     auth::AuthContext,
     models::user::{User, UserAuthentication, UserRegistration},
-    server::AppState,
+    state::AppState,
     views::user::UserDetails,
 };
 
@@ -23,7 +25,7 @@ use argon2::{
 use super::AppError;
 
 pub async fn create_user(
-    State(state): State<AppState>,
+    State(state): State<Arc<AppState>>,
     Json(mut user_registration): Json<UserRegistration>,
 ) -> Result<Json<UserDetails>, AppError> {
     use crate::schema::users::dsl::*;
@@ -47,7 +49,7 @@ pub async fn create_user(
 }
 
 pub async fn login(
-    State(state): State<AppState>,
+    State(state): State<Arc<AppState>>,
     Query(params): Query<UserAuthentication>,
     mut auth: AuthContext,
 ) -> Result<Json<UserDetails>, AppError> {
