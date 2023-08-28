@@ -1,11 +1,11 @@
+pub mod auth;
+pub mod controllers;
 pub mod database;
-pub mod schema;
 pub mod models;
 pub mod router;
-pub mod controllers;
-pub mod views;
+pub mod schema;
 pub mod server;
-
+pub mod views;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -13,7 +13,12 @@ async fn main() -> anyhow::Result<()> {
         .await
         .unwrap_or_else(|err| panic!("{}", err));
 
-    server::serve(db_pool).await
+    let sqlx_db_pool = database::create_sqlx_pool()
+        .await
+        .unwrap_or_else(|err| panic!("{}", err));
+
+    server::serve(db_pool, sqlx_db_pool)
+        .await
         .unwrap_or_else(|err| panic!("Error while running the server: {}", err.to_string()));
 
     Ok(())

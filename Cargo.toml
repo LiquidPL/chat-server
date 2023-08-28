@@ -7,12 +7,17 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
+hyper = "0.14.27"
 tower = "0.4.13"
 dotenvy = "0.15.7"
+rand = "0.8.5"
 axum = "0.6.20"
 bb8 = "0.8.1"
 diesel = "2.1.0"
 diesel-async = { version = "0.3.2", features = ["postgres", "bb8"] }
+sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "postgres" ] }
+async-sqlx-session = { git = "https://github.com/maxcountryman/async-sqlx-session.git",rev = "refs/heads/patch-1", default-features = false, features = ["pg", "tokio_rustls"] }
+axum-login = { version = "0.6.0", features = ["sqlx", "postgres"] }
 serde = { version = "1.0.186", features = ["derive"] }
 argon2 = { version = "0.5.1", features = ["std"] }
 anyhow = "1.0.75"

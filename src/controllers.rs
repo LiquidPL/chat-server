@@ -8,12 +8,22 @@ use axum::{
 /// This allows easily converting [`std::error::Error`] errors into an axum
 /// supported response, with an appropriate HTTP error code.
 pub struct AppError {
+    status_code: StatusCode,
     error: anyhow::Error,
+}
+
+impl AppError {
+    fn new(error: anyhow::Error) -> Self {
+        Self {
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            error,
+        }
+    }
 }
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, self.error.to_string()).into_response()
+        (self.status_code, self.error.to_string()).into_response()
     }
 }
 
@@ -22,8 +32,6 @@ where
     E: Into<anyhow::Error>,
 {
     fn from(error: E) -> Self {
-        Self {
-            error: error.into(),
-        }
+        AppError::new(error.into())
     }
 }
