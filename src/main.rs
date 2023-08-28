@@ -1,34 +1,20 @@
-use axum::{
-    routing::{get, post},
-    Router,
-};
-use controllers::user::create_user;
-
-use std::net::SocketAddr;
-
 pub mod database;
-pub mod models;
 pub mod schema;
-pub mod views;
+pub mod models;
+pub mod router;
 pub mod controllers;
+pub mod views;
+pub mod server;
+
 
 #[tokio::main]
-async fn main() {
-    let pool = database::get_connection_pool().await
+async fn main() -> anyhow::Result<()> {
+    let db_pool = database::create_connection_pool()
+        .await
         .unwrap_or_else(|err| panic!("{}", err));
 
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/users", post(create_user))
-        .with_state(pool);
+    server::serve(db_pool).await
+        .unwrap_or_else(|err| panic!("Error while running the server: {}", err.to_string()));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
-
-async fn root() -> &'static str {
-    "Hello, World!"
+    Ok(())
 }
