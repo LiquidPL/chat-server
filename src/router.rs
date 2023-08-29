@@ -1,16 +1,31 @@
 use std::sync::Arc;
 
-use axum::{routing::{get, post}, Router};
+use axum::{
+    routing::{delete, get, post},
+    Router,
+};
 use axum_login::RequireAuthorizationLayer;
 use tower_http::services::ServeDir;
 
-use crate::{controllers::user::{create_user, login, logout}, models::user::{UserId, User}};
-use crate::controllers::websocket::open_websocket;
+use crate::controllers::{
+    channel::{delete_channel, get_channel},
+    websocket::open_websocket,
+};
 use crate::state::AppState;
+use crate::{
+    controllers::{
+        channel::create_channel,
+        user::{create_user, login, logout},
+    },
+    models::user::{User, UserId},
+};
 
 pub fn create_router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/websocket", get(open_websocket))
+        .route("/channels/:channel_id", get(get_channel))
+        .route("/channels", post(create_channel))
+        .route("/channels/:channel_id", delete(delete_channel))
         .route_layer(RequireAuthorizationLayer::<UserId, User>::login())
         .route("/users", post(create_user))
         .route("/users/login", post(login))

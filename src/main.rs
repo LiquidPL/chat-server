@@ -1,11 +1,11 @@
 pub mod auth;
-pub mod state;
 pub mod controllers;
 pub mod database;
 pub mod models;
 pub mod router;
 pub mod schema;
 pub mod server;
+pub mod state;
 pub mod views;
 
 #[tokio::main]

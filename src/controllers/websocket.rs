@@ -1,15 +1,16 @@
-use std::{sync::Arc, ops::ControlFlow};
+use std::{ops::ControlFlow, sync::Arc};
 
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         State,
     },
-    response::IntoResponse, Extension,
+    response::IntoResponse,
+    Extension,
 };
 use futures::{sink::SinkExt, stream::StreamExt};
 
-use crate::{state::AppState, views::chat::UserStatus, models::user::User};
+use crate::{models::user::User, state::AppState, views::chat::UserStatus};
 
 pub async fn open_websocket(
     ws: WebSocketUpgrade,
@@ -19,16 +20,15 @@ pub async fn open_websocket(
     ws.on_upgrade(move |socket| handle_socket(socket, state, user))
 }
 
-async fn handle_socket(
-    socket: WebSocket,
-    state: Arc<AppState>,
-    user: User,
-) {
+async fn handle_socket(socket: WebSocket, state: Arc<AppState>, user: User) {
     let (mut sender, mut receiver) = socket.split();
 
     on_connect(&state, &user);
 
-    sender.send(Message::Text(String::from("hello"))).await.unwrap();
+    sender
+        .send(Message::Text(String::from("hello")))
+        .await
+        .unwrap();
 
     tokio::spawn(async move {
         while let Some(Ok(msg)) = receiver.next().await {
@@ -59,8 +59,8 @@ fn process_message(msg: Message) -> ControlFlow<(), ()> {
         Message::Text(t) => println!("{}", t),
         Message::Close(_) => {
             return ControlFlow::Break(());
-        },
-        _ => ()
+        }
+        _ => (),
     }
     ControlFlow::Continue(())
 }

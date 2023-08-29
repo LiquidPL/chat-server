@@ -1,6 +1,10 @@
 use std::{collections::HashMap, sync::Mutex};
 
-use crate::{database::{Pool, SqlxPool}, models::user::UserId, views::chat::UserStatus};
+use crate::{
+    database::{Pool, SqlxPool},
+    models::user::UserId,
+    views::chat::UserStatus,
+};
 
 pub struct AppState {
     pub db_pool: Pool,
