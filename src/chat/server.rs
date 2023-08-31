@@ -65,9 +65,9 @@ impl ChatServer {
                     destination,
                     message,
                 } => {
-                    let sender = senders.get_mut(&destination.id).unwrap();
-
-                    sender.send(Message::Text(message)).await.unwrap();
+                    if let Some(sender) = senders.get_mut(&destination.id) {
+                        sender.send(Message::Text(message)).await.unwrap();
+                    }
                 }
                 Connect { user, socket } => {
                     let (sender, receiver) = socket.split();
