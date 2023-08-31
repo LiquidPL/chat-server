@@ -9,8 +9,10 @@ use diesel::ExpressionMethods;
 use diesel_async::{scoped_futures::ScopedFutureExt, AsyncConnection, RunQueryDsl};
 use hyper::StatusCode;
 
-use crate::models::channel::Channel;
-use crate::schema::channels_users;
+use crate::chat::events::Event;
+use crate::chat::server::Command;
+use crate::models::channel::{Channel, ChannelUser};
+use crate::schema::{channels_users, users};
 use crate::views::channel::ChannelDetails;
 use crate::{
     models::{channel::NewChannel, user::User},
@@ -58,7 +60,7 @@ pub async fn create_channel(
 
     let mut conn = state.db_pool.get().await?;
 
-    let created_channel = conn
+    let channel = conn
         .transaction::<ChannelDetails, diesel::result::Error, _>(|conn| {
             async move {
                 let channel = diesel::insert_into(channels)
@@ -78,7 +80,19 @@ pub async fn create_channel(
         })
         .await?;
 
-    Ok(Json(created_channel))
+    let tx = state.chat_server.get_manager_tx();
+
+    tx.send(Command::Send {
+        destination: user.clone(),
+        message: serde_json::to_string(&Event::channel_created(&channel))?,
+    })
+    .await
+    .map_err(|err| AppError {
+        status_code: StatusCode::INTERNAL_SERVER_ERROR,
+        error: anyhow!(err.to_string()),
+    })?;
+
+    Ok(Json(channel))
 }
 
 pub async fn delete_channel(
@@ -113,6 +127,12 @@ pub async fn delete_channel(
         });
     }
 
+    let members = ChannelUser::belonging_to(&channel)
+        .inner_join(users::table)
+        .select(User::as_select())
+        .load(&mut conn)
+        .await?;
+
     conn.transaction::<_, diesel::result::Error, _>(|conn| {
         async move {
             diesel::delete(channels_users::table.filter(channels_users::channel_id.eq(channel_id)))
@@ -128,6 +148,21 @@ pub async fn delete_channel(
         .scope_boxed()
     })
     .await?;
+
+    let tx = state.chat_server.get_manager_tx();
+    let channel_details: Arc<ChannelDetails> = Arc::new(channel.clone().into());
+
+    for member in members {
+        tx.send(Command::Send {
+            destination: member,
+            message: serde_json::to_string(&Event::channel_deleted(&channel_details.clone()))?,
+        })
+        .await
+        .map_err(|err| AppError {
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            error: anyhow!(err.to_string()),
+        })?;
+    }
 
     Ok(())
 }
