@@ -1,16 +1,14 @@
-use std::{ops::ControlFlow, sync::Arc};
+use std::sync::Arc;
 
+use crate::{chat::server::Command, models::user::User, state::AppState};
 use axum::{
     extract::{
-        ws::{Message, WebSocket, WebSocketUpgrade},
+        ws::{WebSocket, WebSocketUpgrade},
         State,
     },
     response::IntoResponse,
     Extension,
 };
-use futures::{sink::SinkExt, stream::StreamExt};
-
-use crate::{models::user::User, state::AppState, views::chat::UserStatus};
 
 pub async fn open_websocket(
     ws: WebSocketUpgrade,
@@ -21,46 +19,12 @@ pub async fn open_websocket(
 }
 
 async fn handle_socket(socket: WebSocket, state: Arc<AppState>, user: User) {
-    let (mut sender, mut receiver) = socket.split();
+    let tx = state.chat_server.get_manager_tx();
 
-    on_connect(&state, &user);
-
-    sender
-        .send(Message::Text(String::from("hello")))
-        .await
-        .unwrap();
-
-    tokio::spawn(async move {
-        while let Some(Ok(msg)) = receiver.next().await {
-            if process_message(msg).is_break() {
-                on_disconnect(&state, &user);
-                break;
-            }
-        }
-    });
-}
-
-fn on_connect(state: &AppState, user: &User) {
-    let mut user_status = state.user_status.lock().unwrap();
-    user_status.insert(user.id, UserStatus::Online);
-
-    println!("User {} connected", user.username);
-}
-
-fn on_disconnect(state: &AppState, user: &User) {
-    let mut user_status = state.user_status.lock().unwrap();
-    user_status.remove(&user.id);
-
-    println!("User {} disconnected", user.username);
-}
-
-fn process_message(msg: Message) -> ControlFlow<(), ()> {
-    match msg {
-        Message::Text(t) => println!("{}", t),
-        Message::Close(_) => {
-            return ControlFlow::Break(());
-        }
-        _ => (),
-    }
-    ControlFlow::Continue(())
+    tx.send(Command::Connect {
+        user: user.clone(),
+        socket,
+    })
+    .await
+    .unwrap();
 }
