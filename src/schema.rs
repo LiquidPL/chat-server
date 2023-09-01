@@ -19,6 +19,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    messages (id) {
+        id -> Int4,
+        sender_id -> Int4,
+        channel_id -> Int4,
+        content -> Text,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int4,
         #[max_length = 255]
@@ -31,5 +42,7 @@ diesel::table! {
 diesel::joinable!(channels -> users (owner_id));
 diesel::joinable!(channels_users -> channels (channel_id));
 diesel::joinable!(channels_users -> users (user_id));
+diesel::joinable!(messages -> channels (channel_id));
+diesel::joinable!(messages -> users (sender_id));
 
-diesel::allow_tables_to_appear_in_same_query!(channels, channels_users, users);
+diesel::allow_tables_to_appear_in_same_query!(channels, channels_users, messages, users,);

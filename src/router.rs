@@ -9,6 +9,7 @@ use tower_http::services::ServeDir;
 
 use crate::controllers::{
     channel::{delete_channel, get_channel},
+    message::{create_message, delete_message},
     websocket::open_websocket,
 };
 use crate::state::AppState;
@@ -26,6 +27,11 @@ pub fn create_router() -> Router<Arc<AppState>> {
         .route("/channels/:channel_id", get(get_channel))
         .route("/channels", post(create_channel))
         .route("/channels/:channel_id", delete(delete_channel))
+        .route("/channels/:channel_id/messages", post(create_message))
+        .route(
+            "/channels/:channel_id/messages/:message_id",
+            delete(delete_message),
+        )
         .route_layer(RequireAuthorizationLayer::<UserId, User>::login())
         .route("/users", post(create_user))
         .route("/users/login", post(login))

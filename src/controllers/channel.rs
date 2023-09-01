@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use axum::extract::Path;
-use axum::{extract::State, Extension, Json};
+use axum::{
+    extract::{Path, State},
+    Extension, Json,
+};
 
 use diesel::prelude::*;
 use diesel::ExpressionMethods;
