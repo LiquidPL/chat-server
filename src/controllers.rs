@@ -7,6 +7,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use serde_json::json;
 
 /// This allows easily converting [`std::error::Error`] errors into an axum
 /// supported response, with an appropriate HTTP error code.
@@ -26,7 +27,7 @@ impl AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        (self.status_code, self.error.to_string()).into_response()
+        (self.status_code, json!({"error": self.error.to_string()}).to_string()).into_response()
     }
 }
 

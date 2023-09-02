@@ -14,7 +14,7 @@ use crate::{
     views::user::UserDetails,
 };
 
-use diesel::SelectableHelper;
+use diesel::{SelectableHelper, QueryDsl, ExpressionMethods};
 use diesel_async::RunQueryDsl;
 
 use argon2::{
@@ -78,4 +78,21 @@ pub async fn login(
 
 pub async fn logout(mut auth: AuthContext) {
     auth.logout().await;
+}
+
+pub async fn current_user(
+    State(state): State<Arc<AppState>>,
+    auth: AuthContext,
+) -> Result<Json<UserDetails>, AppError> {
+    use crate::schema::users::dsl::*;
+
+    let mut conn = state.db_pool.get().await?;
+
+    let user = users
+        .filter(id.eq(auth.current_user.expect("route is auth guarded").id))
+        .select(UserDetails::as_select())
+        .first(&mut conn)
+        .await?;
+
+    Ok(Json(user))
 }
