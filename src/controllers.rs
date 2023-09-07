@@ -12,12 +12,12 @@ use serde_json::json;
 /// This allows easily converting [`std::error::Error`] errors into an axum
 /// supported response, with an appropriate HTTP error code.
 pub struct AppError {
-    status_code: StatusCode,
-    error: anyhow::Error,
+    pub status_code: StatusCode,
+    pub error: anyhow::Error,
 }
 
 impl AppError {
-    fn new(error: anyhow::Error) -> Self {
+    pub fn new(error: anyhow::Error) -> Self {
         Self {
             status_code: StatusCode::INTERNAL_SERVER_ERROR,
             error,
@@ -27,7 +27,11 @@ impl AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        (self.status_code, json!({"error": self.error.to_string()}).to_string()).into_response()
+        (
+            self.status_code,
+            json!({"error": self.error.to_string()}).to_string(),
+        )
+            .into_response()
     }
 }
 

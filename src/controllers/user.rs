@@ -3,18 +3,19 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
-    Json,
+    Json, Extension,
 };
 use hyper::StatusCode;
+use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::{
     auth::AuthContext,
-    models::user::{User, UserAuthentication, UserRegistration},
+    models::user::{TokenClaims, User, UserAuthentication, UserRegistration},
     state::AppState,
-    views::user::UserDetails,
+    views::user::{UserDetails, UserLogin},
 };
 
-use diesel::{SelectableHelper, QueryDsl, ExpressionMethods};
+use diesel::{ExpressionMethods, QueryDsl, SelectableHelper};
 use diesel_async::RunQueryDsl;
 
 use argon2::{
@@ -52,7 +53,7 @@ pub async fn login(
     State(state): State<Arc<AppState>>,
     Query(params): Query<UserAuthentication>,
     mut auth: AuthContext,
-) -> Result<Json<UserDetails>, AppError> {
+) -> Result<Json<UserLogin>, AppError> {
     let mut conn = state.sqlx_db_pool.acquire().await?;
 
     let user: User = sqlx::query_as("select * from users where username = $1")
@@ -61,19 +62,37 @@ pub async fn login(
         .await?;
 
     let parsed_hash = PasswordHash::new(&user.password)?;
-    match Argon2::default().verify_password(params.password.as_bytes(), &parsed_hash) {
-        Ok(_) => {
-            auth.login(&user).await?;
-            Ok(Json(user.into()))
-        }
-        Err(err) => match err {
-            argon2::password_hash::Error::Password => Err(AppError {
-                status_code: StatusCode::FORBIDDEN,
-                error: anyhow!(err),
-            }),
-            other_error => Err(AppError::new(anyhow!(other_error))),
-        },
+    let is_valid = Argon2::default()
+        .verify_password(params.password.as_bytes(), &parsed_hash)
+        .map_or(false, |_| true);
+
+    if !is_valid {
+        return Err(AppError {
+            status_code: StatusCode::FORBIDDEN,
+            error: anyhow!("Invalid login or password"),
+        });
     }
+
+    let now = chrono::Utc::now();
+    let iat = now.timestamp() as usize;
+    let exp = (now + chrono::Duration::minutes(1440)).timestamp() as usize;
+    let claims = TokenClaims {
+        sub: user.id.to_string(),
+        iat,
+        exp,
+    };
+
+    let token = encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(state.config.secret.as_ref()),
+    )?;
+
+    auth.login(&user).await?;
+    Ok(Json(UserLogin {
+        user: user.into(),
+        token,
+    }))
 }
 
 pub async fn logout(mut auth: AuthContext) {
@@ -82,14 +101,14 @@ pub async fn logout(mut auth: AuthContext) {
 
 pub async fn current_user(
     State(state): State<Arc<AppState>>,
-    auth: AuthContext,
+    Extension(user): Extension<User>
 ) -> Result<Json<UserDetails>, AppError> {
     use crate::schema::users::dsl::*;
 
     let mut conn = state.db_pool.get().await?;
 
     let user = users
-        .filter(id.eq(auth.current_user.expect("route is auth guarded").id))
+        .filter(id.eq(user.id))
         .select(UserDetails::as_select())
         .first(&mut conn)
         .await?;

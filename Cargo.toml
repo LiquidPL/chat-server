@@ -9,7 +9,7 @@ edition = "2021"
 tokio = { version = "1.32.0", features = ["full"] }
 hyper = "0.14.27"
 tower = "0.4.13"
-tower-http = { version = "0.4.3", features = ["fs"] }
+tower-http = { version = "0.4.3", features = ["fs", "cors"] }
 dotenvy = "0.15.7"
 rand = "0.8.5"
 axum = { version = "0.6.20", features = ["ws"] }
@@ -25,3 +25,4 @@ argon2 = { version = "0.5.1", features = ["std"] }
 anyhow = "1.0.75"
 chrono = { version = "0.4.26", features = ["serde"] }
 serde_json = "1.0.105"
+jsonwebtoken = "8.3.0"

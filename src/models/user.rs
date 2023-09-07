@@ -1,6 +1,6 @@
 use axum_login::{secrecy::SecretVec, AuthUser};
 use diesel::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub type UserId = i32;
 
@@ -34,4 +34,11 @@ pub struct UserRegistration {
 pub struct UserAuthentication {
     pub username: String,
     pub password: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct TokenClaims {
+    pub sub: String,
+    pub iat: usize,
+    pub exp: usize,
 }
