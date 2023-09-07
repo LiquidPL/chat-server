@@ -27,7 +27,7 @@ pub async fn serve(db_pool: Pool, sqlx_db_pool: SqlxPool) -> Result<(), anyhow::
         .with_state(state.clone())
         .layer(ServiceBuilder::new().layer(session_layer).layer(auth_layer));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8000));
     axum::Server::bind(&addr)
         .serve(router.into_make_service())
         .await
