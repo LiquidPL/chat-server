@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
-    Json, Extension,
+    Extension, Json,
 };
 use hyper::StatusCode;
 use jsonwebtoken::{encode, EncodingKey, Header};
@@ -101,7 +101,7 @@ pub async fn logout(mut auth: AuthContext) {
 
 pub async fn current_user(
     State(state): State<Arc<AppState>>,
-    Extension(user): Extension<User>
+    Extension(user): Extension<User>,
 ) -> Result<Json<UserDetails>, AppError> {
     use crate::schema::users::dsl::*;
 

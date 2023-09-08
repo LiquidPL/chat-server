@@ -4,7 +4,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use tower::ServiceBuilder;
 
-use crate::chat::server::ChatServer;
+use crate::chat::server::ChatServerHandle;
 use crate::config::Config;
 use crate::database::{Pool, SqlxPool};
 use crate::state::AppState;
@@ -14,7 +14,7 @@ pub async fn serve(db_pool: Pool, sqlx_db_pool: SqlxPool) -> Result<(), anyhow::
     let (session_layer, auth_layer) = auth::create_auth(sqlx_db_pool.clone()).await?;
 
     let config = Config::init()?;
-    let chat_server = ChatServer::new().start();
+    let chat_server = ChatServerHandle::new();
 
     let state = Arc::new(AppState {
         config,

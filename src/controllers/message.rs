@@ -84,11 +84,10 @@ pub async fn create_message(
         .load(&mut conn)
         .await?;
 
-    let tx = state.chat_server.get_manager_tx();
     let message_created = Arc::new(Event::message_created(&message));
 
     for member in members {
-        tx.send(Command::Send {
+        state.chat_server.send_command(Command::Send {
             destination: member,
             message: serde_json::to_string(&message_created)?,
         })
@@ -158,11 +157,10 @@ pub async fn delete_message(
         .load(&mut conn)
         .await?;
 
-    let tx = state.chat_server.get_manager_tx();
     let message_details: Arc<MessageDetails> = Arc::new(message);
 
     for member in members {
-        tx.send(Command::Send {
+        state.chat_server.send_command(Command::Send {
             destination: member,
             message: serde_json::to_string(&Event::message_deleted(&message_details.clone()))?,
         })

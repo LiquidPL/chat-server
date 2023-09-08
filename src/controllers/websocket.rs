@@ -19,12 +19,6 @@ pub async fn open_websocket(
 }
 
 async fn handle_socket(socket: WebSocket, state: Arc<AppState>, user: User) {
-    let tx = state.chat_server.get_manager_tx();
-
-    tx.send(Command::Connect {
-        user: user.clone(),
-        socket,
-    })
-    .await
-    .unwrap();
+    state.chat_server.send_command(Command::Connect { user: user.clone(), socket })
+        .await.unwrap();
 }

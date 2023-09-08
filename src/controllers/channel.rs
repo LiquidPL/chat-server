@@ -82,9 +82,8 @@ pub async fn create_channel(
         })
         .await?;
 
-    let tx = state.chat_server.get_manager_tx();
 
-    tx.send(Command::Send {
+    state.chat_server.send_command(Command::Send {
         destination: user.clone(),
         message: serde_json::to_string(&Event::channel_created(&channel))?,
     })
@@ -151,11 +150,10 @@ pub async fn delete_channel(
     })
     .await?;
 
-    let tx = state.chat_server.get_manager_tx();
     let channel_details: Arc<ChannelDetails> = Arc::new(channel.clone().into());
 
     for member in members {
-        tx.send(Command::Send {
+        state.chat_server.send_command(Command::Send {
             destination: member,
             message: serde_json::to_string(&Event::channel_deleted(&channel_details.clone()))?,
         })
