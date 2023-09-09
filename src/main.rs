@@ -1,3 +1,4 @@
+pub mod actors;
 pub mod auth;
 pub mod chat;
 pub mod config;

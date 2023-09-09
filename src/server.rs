@@ -14,7 +14,7 @@ pub async fn serve(db_pool: Pool, sqlx_db_pool: SqlxPool) -> Result<(), anyhow::
     let (session_layer, auth_layer) = auth::create_auth(sqlx_db_pool.clone()).await?;
 
     let config = Config::init()?;
-    let chat_server = ChatServerHandle::new();
+    let chat_server = ChatServerHandle::new(db_pool.clone(), config.clone());
 
     let state = Arc::new(AppState {
         config,

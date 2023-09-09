@@ -55,7 +55,7 @@ export default function LoginForm() {
             if (error !== undefined) {
               setError(error);
             } else {
-              router.push("/");
+              router.push("/channels");
             }
           });
         }}

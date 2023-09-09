@@ -12,7 +12,7 @@ use diesel::ExpressionMethods;
 use diesel_async::RunQueryDsl;
 
 use crate::{
-    chat::events::Event,
+    chat::events::ServerEvent,
     chat::server::Command,
     models::{
         channel::{Channel, ChannelUser},
@@ -84,18 +84,20 @@ pub async fn create_message(
         .load(&mut conn)
         .await?;
 
-    let message_created = Arc::new(Event::message_created(&message));
+    let event = ServerEvent::message_created(&message);
 
     for member in members {
-        state.chat_server.send_command(Command::Send {
-            destination: member,
-            message: serde_json::to_string(&message_created)?,
-        })
-        .await
-        .map_err(|err| AppError {
-            status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            error: anyhow!(err.to_string()),
-        })?;
+        state
+            .chat_server
+            .send_command(Command::Send {
+                destination: member,
+                message: event.clone(),
+            })
+            .await
+            .map_err(|err| AppError {
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                error: anyhow!(err.to_string()),
+            })?;
     }
 
     Ok(Json(message))
@@ -157,18 +159,20 @@ pub async fn delete_message(
         .load(&mut conn)
         .await?;
 
-    let message_details: Arc<MessageDetails> = Arc::new(message);
+    let event = ServerEvent::message_deleted(&message);
 
     for member in members {
-        state.chat_server.send_command(Command::Send {
-            destination: member,
-            message: serde_json::to_string(&Event::message_deleted(&message_details.clone()))?,
-        })
-        .await
-        .map_err(|err| AppError {
-            status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            error: anyhow!(err.to_string()),
-        })?;
+        state
+            .chat_server
+            .send_command(Command::Send {
+                destination: member,
+                message: event.clone(),
+            })
+            .await
+            .map_err(|err| AppError {
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                error: anyhow!(err.to_string()),
+            })?;
     }
 
     Ok(())

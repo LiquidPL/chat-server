@@ -5,14 +5,15 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import LoginForm from "./components/LoginForm";
+import { selectUser } from "@/state/user";
 
 export default function Login() {
   const router = useRouter();
-  const user = useAppSelector((state) => state.user.user);
+  const user = useAppSelector((state) => selectUser(state));
 
   useEffect(() => {
     if (user !== undefined) {
-      router.push("/");
+      router.push("/channels");
     }
   });
 

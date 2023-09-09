@@ -2,7 +2,7 @@ use crate::{models::user::User, schema::users};
 use diesel::{Queryable, Selectable};
 use serde::Serialize;
 
-#[derive(Serialize, Selectable, Queryable)]
+#[derive(Clone, Serialize, Selectable, Queryable)]
 #[diesel(table_name = users)]
 pub struct UserDetails {
     pub id: i32,

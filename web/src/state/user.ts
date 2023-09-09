@@ -28,6 +28,6 @@ export const userSlice = createSlice({
 
 export const { setAccessToken, setUser, unsetUser } = userSlice.actions;
 
-export const userState = (state: RootState) => state.user.user;
+export const selectUser = (state: RootState) => state.user.user;
 
 export default userSlice.reducer;

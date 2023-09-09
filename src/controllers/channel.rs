@@ -11,7 +11,7 @@ use diesel::ExpressionMethods;
 use diesel_async::{scoped_futures::ScopedFutureExt, AsyncConnection, RunQueryDsl};
 use hyper::StatusCode;
 
-use crate::chat::events::Event;
+use crate::chat::events::ServerEvent;
 use crate::chat::server::Command;
 use crate::models::channel::{Channel, ChannelUser};
 use crate::schema::{channels_users, users};
@@ -82,16 +82,17 @@ pub async fn create_channel(
         })
         .await?;
 
-
-    state.chat_server.send_command(Command::Send {
-        destination: user.clone(),
-        message: serde_json::to_string(&Event::channel_created(&channel))?,
-    })
-    .await
-    .map_err(|err| AppError {
-        status_code: StatusCode::INTERNAL_SERVER_ERROR,
-        error: anyhow!(err.to_string()),
-    })?;
+    state
+        .chat_server
+        .send_command(Command::Send {
+            destination: user.clone(),
+            message: ServerEvent::channel_created(&channel),
+        })
+        .await
+        .map_err(|err| AppError {
+            status_code: StatusCode::INTERNAL_SERVER_ERROR,
+            error: anyhow!(err.to_string()),
+        })?;
 
     Ok(Json(channel))
 }
@@ -150,18 +151,20 @@ pub async fn delete_channel(
     })
     .await?;
 
-    let channel_details: Arc<ChannelDetails> = Arc::new(channel.clone().into());
+    let event = ServerEvent::channel_deleted(&channel.into());
 
     for member in members {
-        state.chat_server.send_command(Command::Send {
-            destination: member,
-            message: serde_json::to_string(&Event::channel_deleted(&channel_details.clone()))?,
-        })
-        .await
-        .map_err(|err| AppError {
-            status_code: StatusCode::INTERNAL_SERVER_ERROR,
-            error: anyhow!(err.to_string()),
-        })?;
+        state
+            .chat_server
+            .send_command(Command::Send {
+                destination: member,
+                message: event.clone(),
+            })
+            .await
+            .map_err(|err| AppError {
+                status_code: StatusCode::INTERNAL_SERVER_ERROR,
+                error: anyhow!(err.to_string()),
+            })?;
     }
 
     Ok(())

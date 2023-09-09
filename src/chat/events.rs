@@ -1,14 +1,21 @@
 use chrono::NaiveDateTime;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     models::user::UserId,
-    views::{channel::ChannelDetails, message::MessageDetails},
+    views::{channel::ChannelDetails, message::MessageDetails, user::UserDetails},
 };
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 #[serde(tag = "event_type", content = "data")]
-pub enum Event {
+pub enum ServerEvent {
+    UserAuthenticated {
+        user: UserDetails,
+        channels: Vec<ChannelDetails>,
+    },
+    AuthenticationError {
+        error: String,
+    },
     ChannelCreated {
         id: i32,
         name: String,
@@ -31,7 +38,13 @@ pub enum Event {
     },
 }
 
-impl Event {
+#[derive(Deserialize)]
+#[serde(tag = "event_type", content = "data")]
+pub enum ClientEvent {
+    Auth { token: String },
+}
+
+impl ServerEvent {
     pub fn channel_created(channel: &ChannelDetails) -> Self {
         Self::ChannelCreated {
             id: channel.id,

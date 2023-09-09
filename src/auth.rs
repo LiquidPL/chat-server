@@ -67,17 +67,11 @@ pub async fn jwt_auth<B>(
             error: anyhow!("unauthorized"),
         })?;
 
-    let claims = decode::<TokenClaims>(
-        &token,
-        &DecodingKey::from_secret(state.config.secret.as_ref()),
-        &Validation::default(),
-    )
-    .map_err(|_| AppError {
-        status_code: StatusCode::UNAUTHORIZED,
-        error: anyhow!("unauthorized"),
-    })?
-    .claims;
-
+    let claims =
+        decode_access_token(&token, state.config.secret.as_ref()).map_err(|_| AppError {
+            status_code: StatusCode::UNAUTHORIZED,
+            error: anyhow!("unauthorized"),
+        })?;
     let user_id = &claims.sub.parse::<UserId>()?;
 
     let mut conn = state.db_pool.get().await?;
@@ -104,4 +98,17 @@ pub async fn jwt_auth<B>(
     req.extensions_mut().insert(user);
 
     Ok(next.run(req).await)
+}
+
+pub fn decode_access_token(
+    token: &String,
+    secret: &[u8],
+) -> Result<TokenClaims, jsonwebtoken::errors::Error> {
+    let decoded = decode::<TokenClaims>(
+        &token,
+        &DecodingKey::from_secret(secret),
+        &Validation::default(),
+    )?;
+
+    Ok(decoded.claims)
 }
