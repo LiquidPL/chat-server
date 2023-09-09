@@ -1,7 +1,15 @@
 import getConfig from "@/config";
-import { Event, Auth, UserAuthenticated, MessageCreated } from "@/models";
-import { setChannel, setChannels } from "@/state/channels";
-import { addMessage } from "@/state/messages";
+import {
+  Event,
+  Auth,
+  UserAuthenticated,
+  MessageCreated,
+  MessageDeleted,
+  ChannelCreated,
+  ChannelDeleted,
+} from "@/models";
+import { deleteChannel, setChannel, setChannels } from "@/state/channels";
+import { addMessage, deleteMessage } from "@/state/messages";
 import store from "@/store";
 
 let socket: WebSocket;
@@ -52,7 +60,19 @@ function handleEvent(event: Event<any>) {
     case "MessageCreated":
       const message = event.data as MessageCreated;
       store.dispatch(addMessage(message));
-    case "MessageCreated":
+      break;
+    case "MessageDeleted":
+      const messageId = (event.data as MessageDeleted).id;
+      store.dispatch(deleteMessage(messageId));
+      break;
+    case "ChannelCreated":
+      const channel = event.data as ChannelCreated;
+      store.dispatch(setChannel(channel));
+      break;
+    case "ChannelDeleted":
+      const channelId = (event.data as ChannelDeleted).id;
+      store.dispatch(deleteChannel(channelId));
+      break;
     default:
       break;
   }

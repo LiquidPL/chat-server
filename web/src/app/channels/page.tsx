@@ -4,9 +4,7 @@ import { useAppSelector } from "@/hooks";
 import { selectChannelCount } from "@/state/channels";
 
 export default function Channels() {
-  const channelCount = useAppSelector((state) =>
-    selectChannelCount(state),
-  );
+  const channelCount = useAppSelector((state) => selectChannelCount(state));
 
   return (
     <div className="flex h-full w-full items-center justify-center">

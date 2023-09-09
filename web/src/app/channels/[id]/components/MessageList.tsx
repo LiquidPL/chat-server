@@ -6,7 +6,9 @@ import { selectMessagesByChannelId } from "@/state/messages";
 import { useEffect, useRef } from "react";
 
 export default function MessageList({ id: channel_id }: { id: number }) {
-  const messages = useAppSelector(state => selectMessagesByChannelId(state.messages, channel_id));
+  const messages = useAppSelector((state) =>
+    selectMessagesByChannelId(state, channel_id),
+  );
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,7 +24,10 @@ export default function MessageList({ id: channel_id }: { id: number }) {
   }, [messages]);
 
   return (
-    <div className="flex h-full w-full flex-col p-3 overflow-auto" ref={listRef}>
+    <div
+      className="flex h-full w-full flex-col overflow-auto p-3"
+      ref={listRef}
+    >
       {messages.map((message) => (
         <MessageItem key={message.id} message={message} />
       ))}

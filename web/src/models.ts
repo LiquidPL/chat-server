@@ -42,9 +42,26 @@ export interface UserAuthenticated {
   channels: InitialChannel[];
 }
 
+export type ChannelCreated = Channel;
+
+export interface ChannelDeleted {
+  id: number;
+  name: string;
+}
+
 export type MessageCreated = Message;
 
+export interface MessageDeleted {
+  id: number;
+}
+
 export interface Event<T> {
-  event_type: "Auth" | "UserAuthenticated" | "MessageCreated";
+  event_type:
+    | "Auth"
+    | "UserAuthenticated"
+    | "MessageCreated"
+    | "MessageDeleted"
+    | "ChannelCreated"
+    | "ChannelDeleted";
   data: T;
 }

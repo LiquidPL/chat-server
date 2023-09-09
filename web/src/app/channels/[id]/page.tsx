@@ -2,6 +2,7 @@
 
 import MessageList from "./components/MessageList";
 import ChannelHeader from "./components/Header";
+import ChannelMemberList from "./components/ChannelMemberList";
 import MessageInput from "./components/MessageInput";
 import { useEffect } from "react";
 import axios from "axios";
@@ -11,7 +12,7 @@ import { Message } from "@/models";
 import { addMessages } from "@/state/messages";
 
 export default function Channel({ params }: { params: { id: number } }) {
-  const accessToken = useAppSelector(state => state.user.accessToken);
+  const accessToken = useAppSelector((state) => state.user.accessToken);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -19,17 +20,16 @@ export default function Channel({ params }: { params: { id: number } }) {
       return;
     }
 
-    axios.get(
-      getConfig().apiUrl + "/channels/" + params.id + "/messages",
-      {
+    axios
+      .get(getConfig().apiUrl + "/channels/" + params.id + "/messages", {
         headers: {
-          Authorization: "Bearer " + accessToken
-        }
-      }
-    ).then((response) => {
-      const messages: Message[] = response.data;
-      dispatch(addMessages(messages));
-    })
+          Authorization: "Bearer " + accessToken,
+        },
+      })
+      .then((response) => {
+        const messages: Message[] = response.data;
+        dispatch(addMessages(messages));
+      });
   });
 
   return (
