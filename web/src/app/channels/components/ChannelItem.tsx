@@ -1,6 +1,8 @@
 "use client";
 
 import { Channel, Message } from "@/models";
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 import Link from "next/link";
 
 export default function ChannelItem({
@@ -14,6 +16,9 @@ export default function ChannelItem({
 }) {
   const backgroundColor = active ? "bg-gray-100" : "";
 
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const localDate = message ? utcToZonedTime(parseISO(message?.created_at + '+00:00'), timezone) : null;
+
   return (
     <Link href={`/channels/${channel.id}`}>
       <div
@@ -24,7 +29,7 @@ export default function ChannelItem({
         </div>
         <div className="align-center flex justify-between">
           <span className="text-sm text-gray-600">{message?.content}</span>
-          <span className="text-sm text-gray-600">yesterday</span>
+          <span className="text-sm text-gray-600">{localDate ? formatDistanceToNow(localDate) + ' ago' : ''}</span>
         </div>
       </div>
     </Link>

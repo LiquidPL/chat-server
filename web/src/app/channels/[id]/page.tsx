@@ -62,6 +62,7 @@ export default function Channel({ params }: { params: { id: number } }) {
         <MessageList id={params.id} />
         <MessageInput />
       </div>
+      <ChannelMemberList />
     </div>
   );
 }

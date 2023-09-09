@@ -3,10 +3,14 @@ use std::sync::Arc;
 use axum::{
     middleware,
     routing::{delete, get, post},
-    Router,
+    Router, http::HeaderValue,
 };
 
-use tower_http::services::ServeDir;
+use hyper::header;
+use tower_http::{
+    cors::{Any, CorsLayer},
+    services::ServeDir,
+};
 
 use crate::controllers::{
     channel::{create_channel, delete_channel, get_channel},
@@ -33,5 +37,11 @@ pub fn create_router(state: Arc<AppState>) -> Router<Arc<AppState>> {
         .route("/websocket", get(open_websocket))
         .route("/users", post(create_user))
         .route("/users/login", post(login))
+        .route_layer(
+            CorsLayer::new()
+                .allow_methods(Any)
+                .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+                .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE]),
+        )
         .nest_service("/", ServeDir::new("web/out"))
 }
