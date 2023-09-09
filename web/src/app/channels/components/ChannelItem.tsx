@@ -29,7 +29,7 @@ export default function ChannelItem({
         <div>
           <span className="text-gray-900">{channel.name}</span>
         </div>
-        <div className="align-center flex justify-between">
+        <div className="align-center flex justify-between overflow-hidden">
           <span className="text-sm text-gray-600">
             {message ? message?.content : "No messages yet"}
           </span>
