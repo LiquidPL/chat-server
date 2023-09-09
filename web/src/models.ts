@@ -29,6 +29,11 @@ export interface NewMessage {
   content: string;
 }
 
+export interface NewChannel {
+  name: string;
+  owner_id: number;
+}
+
 export interface Auth {
   token: string;
 }

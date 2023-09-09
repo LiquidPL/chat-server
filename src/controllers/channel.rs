@@ -86,7 +86,7 @@ pub async fn create_channel(
         .chat_server
         .send_command(Command::Send {
             destination: user.clone(),
-            message: ServerEvent::channel_created(&channel),
+            message: ServerEvent::channel_created(&channel, user.clone().into()),
         })
         .await
         .map_err(|err| AppError {

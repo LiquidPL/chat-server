@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::user::UserId,
-    views::{channel::ChannelDetails, message::MessageDetails, user::UserDetails}, actors::InitialChannelDetails,
+    views::{channel::ChannelDetails, message::MessageDetails, user::UserDetails, chat::UserStatus}, actors::InitialChannelDetails,
 };
 
 #[derive(Clone, Serialize)]
@@ -21,6 +21,7 @@ pub enum ServerEvent {
         name: String,
         owner_id: UserId,
         created_at: NaiveDateTime,
+        members: Vec<UserDetails>,
     },
     ChannelDeleted {
         id: i32,
@@ -45,12 +46,13 @@ pub enum ClientEvent {
 }
 
 impl ServerEvent {
-    pub fn channel_created(channel: &ChannelDetails) -> Self {
+    pub fn channel_created(channel: &ChannelDetails, owner: UserDetails) -> Self {
         Self::ChannelCreated {
             id: channel.id,
             name: channel.name.clone(),
             owner_id: channel.owner_id,
             created_at: channel.created_at,
+            members: vec![owner],
         }
     }
 
