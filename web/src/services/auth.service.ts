@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import getConfig from "../config";
 import { User } from "@/models";
-import { setAccessToken, setUser, unsetUser } from "../state/user";
+import { setAccessToken, setUser, unsetUser } from "../state/auth";
 import store from "@/store";
 
 interface Login {

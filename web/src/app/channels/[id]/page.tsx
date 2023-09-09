@@ -17,21 +17,24 @@ import { addMessages } from "@/state/messages";
 export const CHANNEL_DELETED = Symbol("CHANNEL_DELETED");
 
 export default function Channel({ params }: { params: { id: number } }) {
-  const accessToken = useAppSelector((state) => state.user.accessToken);
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  useSubscribe({token: CHANNEL_DELETED, handler: (_, message) => {
-    if (message === undefined) {
-      return;
-    }
+  useSubscribe({
+    token: CHANNEL_DELETED,
+    handler: (_, message) => {
+      if (message === undefined) {
+        return;
+      }
 
-    const channelId = parseInt(message);
+      const channelId = parseInt(message);
 
-    if (channelId == params.id) {
-      router.push("/channels");
-    }
-  }});
+      if (channelId == params.id) {
+        router.push("/channels");
+      }
+    },
+  });
 
   useEffect(() => {
     if (accessToken === undefined) {
@@ -62,7 +65,7 @@ export default function Channel({ params }: { params: { id: number } }) {
         <MessageList id={params.id} />
         <MessageInput />
       </div>
-      <ChannelMemberList />
+      <ChannelMemberList id={params.id} />
     </div>
   );
 }

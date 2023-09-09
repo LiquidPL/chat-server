@@ -5,8 +5,9 @@ use anyhow::Error;
 use serde::Serialize;
 use tokio::sync::oneshot;
 
+use crate::views::channel::ChannelDetailsWithUser;
 use crate::views::message::MessageDetails;
-use crate::{models::user::User, views::channel::ChannelDetails};
+use crate::models::user::User;
 
 pub use self::get_initial_sync::GetInitialSyncActorHandle;
 pub use self::validate_token::ValidateTokenActorHandle;
@@ -32,6 +33,6 @@ pub struct UserAuthenticated {
 /// (channel and the most recent message)
 #[derive(Clone, Serialize)]
 pub struct InitialChannelDetails {
-    channel: ChannelDetails,
+    channel: ChannelDetailsWithUser,
     message: Option<MessageDetails>,
 }

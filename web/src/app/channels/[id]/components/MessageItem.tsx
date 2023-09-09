@@ -3,10 +3,14 @@
 import { Message, User } from "@/models";
 import { useAppSelector } from "@/hooks";
 import UserAvatar from "./UserAvatar";
-import { selectUser } from "@/state/user";
+import { selectAuthenticatedUser } from "@/state/auth";
+import { selectUserById } from "@/state/users";
 
 export default function MessageItem({ message }: { message: Message }) {
-  const user = useAppSelector((state) => selectUser(state));
+  const user = useAppSelector((state) => selectAuthenticatedUser(state));
+  const sender = useAppSelector((state) =>
+    selectUserById(state, message.sender_id),
+  ) ?? { id: -1, username: "unknown user" };
 
   const isPostedByUser = user?.id === message.sender_id;
 
@@ -14,44 +18,39 @@ export default function MessageItem({ message }: { message: Message }) {
   const margin = isPostedByUser ? "ml-auto" : "mr-auto";
   const textColor = isPostedByUser ? "text-white" : "text-gray-900";
 
-  const author = {
-    id: 727,
-    username: "asdf",
-  } as User;
-
   return (
     <div className="mb-2 flex flex-col">
-      {createUsername(author, isPostedByUser)}
+      {createUsername(sender, isPostedByUser)}
       <div className="flex w-full">
-        {isPostedByUser ? <></> : createAvatar(author, isPostedByUser)}
+        {isPostedByUser ? <></> : createAvatar(sender, isPostedByUser)}
         <div
           className={`h-9 max-w-prose rounded-full px-3 py-1.5 ${textColor} ${backgroundColor} ${margin}`}
         >
           {message.content}
         </div>
-        {isPostedByUser ? createAvatar(author, isPostedByUser) : <></>}
+        {isPostedByUser ? createAvatar(sender, isPostedByUser) : <></>}
       </div>
     </div>
   );
 }
 
-function createAvatar(author: User, isPostedByUser: boolean) {
+function createAvatar(sender: User, isPostedByUser: boolean) {
   const margin = isPostedByUser ? "ml-2" : "mr-2";
 
   return (
     <div className={`aspect-square ${margin} translate-y-2`}>
-      <UserAvatar user={author} />
+      <UserAvatar user={sender} />
     </div>
   );
 }
 
-function createUsername(author: User, isPostedByUser: boolean) {
+function createUsername(sender: User, isPostedByUser: boolean) {
   const marginLeft = isPostedByUser ? "ml-auto" : "ml-14";
   const marginRight = isPostedByUser ? "mr-14" : "mr-auto";
 
   return (
     <span className={`${marginLeft} ${marginRight} text-sm text-gray-400`}>
-      {author.username}
+      {sender.username}
     </span>
   );
 }

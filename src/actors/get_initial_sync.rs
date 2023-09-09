@@ -3,8 +3,8 @@ use tokio::sync::mpsc;
 
 use crate::{
     database::Pool,
-    models::{channel::ChannelUser, user::User},
-    views::{channel::ChannelDetails, message::MessageDetails},
+    models::{channel::{ChannelUser, Channel}, user::User},
+    views::{channel::ChannelDetailsWithUser, message::MessageDetails, user::UserDetails},
 };
 
 use super::{ActorMessage, InitialChannelDetails};
@@ -59,9 +59,10 @@ impl GetInitialSyncActor {
 
         for channel in channels {
             let message = messages.iter().find(|&message| message.channel_id == channel.id);
+            let members = self.get_members(&channel).await?;
 
             initial_channels.push(InitialChannelDetails {
-                channel,
+                channel: ChannelDetailsWithUser::new(channel.into(), members),
                 message: message.map_or(None, |message| Some(message.clone())),
             });
         }
@@ -69,7 +70,7 @@ impl GetInitialSyncActor {
         Ok(initial_channels)
     }
 
-    async fn get_channels(&mut self, user: User) -> Result<Vec<ChannelDetails>, Error> {
+    async fn get_channels(&mut self, user: User) -> Result<Vec<Channel>, Error> {
         use crate::schema::channels::dsl::*;
 
         let mut conn = self.db_pool.get().await?;
@@ -77,13 +78,26 @@ impl GetInitialSyncActor {
         ChannelUser::belonging_to(&user)
             .inner_join(channels)
             .order(id.desc())
-            .select(ChannelDetails::as_select())
+            .select(Channel::as_select())
             .load(&mut conn)
             .await
             .map_err(|err| anyhow!(err.to_string()))
     }
 
-    async fn get_most_recent_messages(&mut self, channels: &Vec<ChannelDetails>) -> Result<Vec<MessageDetails>, Error> {
+    async fn get_members(&mut self, channel: &Channel) -> Result<Vec<UserDetails>, Error> {
+        use crate::schema::users::dsl::*;
+
+        let mut conn = self.db_pool.get().await?;
+
+        ChannelUser::belonging_to(&channel)
+            .inner_join(users)
+            .select(UserDetails::as_select())
+            .load(&mut conn)
+            .await
+            .map_err(|err| anyhow!(err.to_string()))
+    }
+
+    async fn get_most_recent_messages(&mut self, channels: &Vec<Channel>) -> Result<Vec<MessageDetails>, Error> {
         use crate::schema::messages::dsl::*;
 
         let channel_ids: Vec<i32> = channels.iter().map(|channel| channel.id).collect();

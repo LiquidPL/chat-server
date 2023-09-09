@@ -10,7 +10,7 @@ export interface UserState {
 const initialState: UserState = {};
 
 export const userSlice = createSlice({
-  name: "user",
+  name: "auth",
   initialState,
   reducers: {
     setAccessToken: (state, action: PayloadAction<string>) => {
@@ -28,6 +28,6 @@ export const userSlice = createSlice({
 
 export const { setAccessToken, setUser, unsetUser } = userSlice.actions;
 
-export const selectUser = (state: RootState) => state.user.user;
+export const selectAuthenticatedUser = (state: RootState) => state.auth.user;
 
 export default userSlice.reducer;

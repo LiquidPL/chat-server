@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import LoginForm from "./components/LoginForm";
-import { selectUser } from "@/state/user";
+import { selectAuthenticatedUser } from "@/state/auth";
 
 export default function Login() {
   const router = useRouter();
-  const user = useAppSelector((state) => selectUser(state));
+  const user = useAppSelector((state) => selectAuthenticatedUser(state));
 
   useEffect(() => {
     if (user !== undefined) {

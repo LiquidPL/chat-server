@@ -22,7 +22,7 @@ export const messagesSlice = createSlice({
 
 export const { addMessage, addMessages, deleteMessage } = messagesSlice.actions;
 
-export const { selectAll } = messagesAdapter.getSelectors(
+const { selectAll } = messagesAdapter.getSelectors(
   (state: RootState) => state.messages,
 );
 
@@ -40,5 +40,7 @@ export const selectMessagesByChannelId = createSelector(
       });
   },
 );
+
+export const selectAllMessages = selectAll;
 
 export default messagesSlice.reducer;

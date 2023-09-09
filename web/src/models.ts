@@ -9,6 +9,7 @@ export interface Channel {
   owner_id: number;
   created_at: string;
   updated_at: string;
+  members: User[];
 }
 
 export interface ChannelListItem {

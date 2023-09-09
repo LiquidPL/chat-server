@@ -5,7 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import { Channel, ChannelListItem, Message } from "@/models";
 import { RootState } from "@/store";
-import { selectAll as selectAllMessages } from "./messages";
+import { selectAllMessages } from "./messages";
 
 const channelsAdapter = createEntityAdapter<Channel>();
 
@@ -23,7 +23,7 @@ export const channelsSlice = createSlice({
 
 export const { setChannel, setChannels, deleteChannel } = channelsSlice.actions;
 
-const { selectAll, selectTotal } = channelsAdapter.getSelectors(
+const { selectById, selectAll, selectTotal } = channelsAdapter.getSelectors(
   (state: RootState) => state.channels,
 );
 
@@ -68,6 +68,7 @@ export const selectChannelList = createSelector(
   },
 );
 
+export const selectChannelById = selectById;
 export const selectChannelCount = selectTotal;
 
 export default channelsSlice.reducer;

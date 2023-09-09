@@ -7,7 +7,7 @@ import { useState } from "react";
 
 export default function MessageInput() {
   const [message, setMessage] = useState("");
-  const accessToken = useAppSelector((state) => state.user.accessToken);
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
   const params = useParams();
 
   const activeChannelId = parseInt(params.id as string);

@@ -11,6 +11,7 @@ import {
 } from "@/models";
 import { deleteChannel, setChannel, setChannels } from "@/state/channels";
 import { addMessage, deleteMessage } from "@/state/messages";
+import { addUser } from "@/state/users";
 import store from "@/store";
 
 let socket: WebSocket;
@@ -31,7 +32,7 @@ function buildPayload(accessToken: string): Event<Auth> {
 }
 
 function onConnect() {
-  let accessToken = store.getState().user.accessToken;
+  let accessToken = store.getState().auth.accessToken;
 
   if (accessToken !== undefined) {
     socket.send(JSON.stringify(buildPayload(accessToken)));
@@ -54,6 +55,10 @@ function handleEvent(event: Event<any>) {
 
         if (initial_channel.message !== null) {
           store.dispatch(addMessage(initial_channel.message));
+        }
+
+        for (const member of initial_channel.channel.members) {
+          store.dispatch(addUser(member));
         }
       }
 

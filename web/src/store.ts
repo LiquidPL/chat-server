@@ -1,14 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import userReducer from "./state/user";
+import authReducer from "./state/auth";
 import channelsReducer from "./state/channels";
 import messagesReducer from "./state/messages";
+import usersReducer from "./state/users";
 
 const store = configureStore({
   reducer: {
-    user: userReducer,
+    auth: authReducer,
     channels: channelsReducer,
     messages: messagesReducer,
+    users: usersReducer,
   },
 });
 
