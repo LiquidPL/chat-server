@@ -28,7 +28,7 @@ export default function ChannelItem({
           <span className="text-gray-900">{channel.name}</span>
         </div>
         <div className="align-center flex justify-between">
-          <span className="text-sm text-gray-600">{message?.content}</span>
+          <span className="text-sm text-gray-600">{message ? message?.content : 'No messages yet'}</span>
           <span className="text-sm text-gray-600">{localDate ? formatDistanceToNow(localDate) + ' ago' : ''}</span>
         </div>
       </div>
