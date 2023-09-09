@@ -11,11 +11,11 @@ use diesel::ExpressionMethods;
 use diesel_async::{scoped_futures::ScopedFutureExt, AsyncConnection, RunQueryDsl};
 use hyper::StatusCode;
 
-use crate::chat::events::ServerEvent;
-use crate::chat::server::Command;
 use crate::models::channel::{Channel, ChannelUser};
 use crate::schema::{channels_users, users};
 use crate::views::channel::ChannelDetails;
+use crate::{chat::events::ServerEvent, views::user::UserDetails};
+use crate::{chat::server::Command, views::channel::ChannelDetailsWithUser};
 use crate::{
     models::{channel::NewChannel, user::User},
     state::AppState,
@@ -86,7 +86,7 @@ pub async fn create_channel(
         .chat_server
         .send_command(Command::Send {
             destination: user.clone(),
-            message: ServerEvent::channel_created(&channel, user.clone().into()),
+            message: ServerEvent::channel_created(&channel, vec![user.clone().into()]),
         })
         .await
         .map_err(|err| AppError {
@@ -166,6 +166,112 @@ pub async fn delete_channel(
                 error: anyhow!(err.to_string()),
             })?;
     }
+
+    Ok(())
+}
+
+#[derive(serde::Deserialize)]
+pub struct ChannelInvite {
+    username: String,
+}
+
+pub async fn invite_user(
+    State(state): State<Arc<AppState>>,
+    Extension(user): Extension<User>,
+    Path(channel_id): Path<i32>,
+    Json(invite): Json<ChannelInvite>,
+) -> Result<(), AppError> {
+    use crate::schema::channels::dsl::*;
+
+    let mut conn = state.db_pool.get().await?;
+
+    let channel = match channels
+        .filter(id.eq(channel_id))
+        .select(Channel::as_select())
+        .get_result(&mut conn)
+        .await
+    {
+        Ok(channel) => Ok(channel),
+        Err(err) => match err {
+            diesel::result::Error::NotFound => Err(AppError {
+                status_code: StatusCode::NOT_FOUND,
+                error: anyhow!("not found"),
+            }),
+            err => Err(AppError::new(anyhow!(err))),
+        },
+    }?;
+
+    match ChannelUser::belonging_to(&channel)
+        .inner_join(users::table)
+        .filter(users::id.eq(user.id))
+        .select(User::as_select())
+        .get_result(&mut conn)
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(err) => match err {
+            diesel::result::Error::NotFound => Err(AppError {
+                status_code: StatusCode::FORBIDDEN,
+                error: anyhow!("you don't have access to this channel"),
+            }),
+            err => Err(AppError::new(anyhow!(err))),
+        },
+    }?;
+
+    let target_user = match users::table
+        .filter(users::username.eq(invite.username))
+        .select(User::as_select())
+        .get_result(&mut conn)
+        .await
+    {
+        Ok(user) => Ok(user),
+        Err(err) => match err {
+            diesel::result::Error::NotFound => Err(AppError {
+                status_code: StatusCode::NOT_FOUND,
+                error: anyhow!("User with this username was not found"),
+            }),
+            err => Err(AppError::new(anyhow!(err))),
+        },
+    }?;
+
+    diesel::insert_into(channels_users::table)
+        .values((
+            channels_users::channel_id.eq(channel_id),
+            channels_users::user_id.eq(target_user.id),
+        ))
+        .execute(&mut conn)
+        .await?;
+
+    let members = ChannelUser::belonging_to(&channel)
+        .inner_join(users::table)
+        .select(UserDetails::as_select())
+        .load(&mut conn)
+        .await?;
+
+    for member in members.clone() {
+        if member.id == target_user.id {
+            continue;
+        }
+
+        state
+            .chat_server
+            .send_command(Command::Send {
+                destination: User::from(member),
+                message: ServerEvent::UserJoined {
+                    channel: ChannelDetailsWithUser::new(channel.clone().into(), members.clone()),
+                    user: target_user.clone().into(),
+                },
+            })
+            .await?;
+    }
+
+    state
+        .chat_server
+        .send_command(Command::Send {
+            destination: target_user.clone(),
+            message: ServerEvent::channel_created(&channel.clone().into(), members),
+        })
+        .await?;
 
     Ok(())
 }

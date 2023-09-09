@@ -5,9 +5,9 @@ use anyhow::Error;
 use serde::Serialize;
 use tokio::sync::oneshot;
 
+use crate::models::user::User;
 use crate::views::channel::ChannelDetailsWithUser;
 use crate::views::message::MessageDetails;
-use crate::models::user::User;
 
 pub use self::get_initial_sync::GetInitialSyncActorHandle;
 pub use self::validate_token::ValidateTokenActorHandle;

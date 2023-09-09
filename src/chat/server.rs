@@ -8,7 +8,10 @@ use axum::extract::ws::WebSocket;
 use tokio::sync::{mpsc, oneshot};
 
 use crate::{
-    actors::{GetInitialSyncActorHandle, UserAuthenticated, ValidateTokenActorHandle, InitialChannelDetails},
+    actors::{
+        GetInitialSyncActorHandle, InitialChannelDetails, UserAuthenticated,
+        ValidateTokenActorHandle,
+    },
     chat::events::ServerEvent,
     config::Config,
     database::Pool,

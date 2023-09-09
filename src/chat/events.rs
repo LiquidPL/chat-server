@@ -2,8 +2,13 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    actors::InitialChannelDetails,
     models::user::UserId,
-    views::{channel::ChannelDetails, message::MessageDetails, user::UserDetails, chat::UserStatus}, actors::InitialChannelDetails,
+    views::{
+        channel::{ChannelDetails, ChannelDetailsWithUser},
+        message::MessageDetails,
+        user::UserDetails,
+    },
 };
 
 #[derive(Clone, Serialize)]
@@ -37,6 +42,10 @@ pub enum ServerEvent {
     MessageDeleted {
         id: i32,
     },
+    UserJoined {
+        channel: ChannelDetailsWithUser,
+        user: UserDetails,
+    },
 }
 
 #[derive(Deserialize)]
@@ -46,13 +55,13 @@ pub enum ClientEvent {
 }
 
 impl ServerEvent {
-    pub fn channel_created(channel: &ChannelDetails, owner: UserDetails) -> Self {
+    pub fn channel_created(channel: &ChannelDetails, members: Vec<UserDetails>) -> Self {
         Self::ChannelCreated {
             id: channel.id,
             name: channel.name.clone(),
             owner_id: channel.owner_id,
             created_at: channel.created_at,
-            members: vec![owner],
+            members,
         }
     }
 

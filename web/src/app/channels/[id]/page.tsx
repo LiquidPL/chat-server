@@ -21,7 +21,9 @@ export default function Channel({ params }: { params: { id: number } }) {
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const channel = useAppSelector((state) => selectChannelById(state, params.id));
+  const channel = useAppSelector((state) =>
+    selectChannelById(state, params.id),
+  );
 
   useSubscribe({
     token: CHANNEL_DELETED,
@@ -63,7 +65,7 @@ export default function Channel({ params }: { params: { id: number } }) {
   return (
     <div className="flex h-full w-full">
       <div className="flex h-full w-full flex-col">
-        {channel ? <ChannelHeader name={channel?.name} /> : ''}
+        {channel ? <ChannelHeader name={channel?.name} /> : ""}
         <MessageList id={params.id} />
         <MessageInput />
       </div>

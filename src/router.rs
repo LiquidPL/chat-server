@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use axum::{
+    http::HeaderValue,
     middleware,
     routing::{delete, get, post},
-    Router, http::HeaderValue,
+    Router,
 };
 
 use hyper::header;
@@ -13,7 +14,7 @@ use tower_http::{
 };
 
 use crate::controllers::{
-    channel::{create_channel, delete_channel, get_channel},
+    channel::{create_channel, delete_channel, get_channel, invite_user},
     message::{create_message, delete_message, get_messages},
     user::{create_user, current_user, login, logout},
     websocket::open_websocket,
@@ -27,6 +28,7 @@ pub fn create_router(state: Arc<AppState>) -> Router<Arc<AppState>> {
         .route("/channels/:channel_id", delete(delete_channel))
         .route("/channels/:channel_id/messages", get(get_messages))
         .route("/channels/:channel_id/messages", post(create_message))
+        .route("/channels/:channel_id/invite", post(invite_user))
         .route("/users/me", get(current_user))
         .route("/users/logout", post(logout))
         .route(

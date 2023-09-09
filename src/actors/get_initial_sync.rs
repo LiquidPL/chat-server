@@ -3,7 +3,10 @@ use tokio::sync::mpsc;
 
 use crate::{
     database::Pool,
-    models::{channel::{ChannelUser, Channel}, user::User},
+    models::{
+        channel::{Channel, ChannelUser},
+        user::User,
+    },
     views::{channel::ChannelDetailsWithUser, message::MessageDetails, user::UserDetails},
 };
 
@@ -50,15 +53,19 @@ impl GetInitialSyncActor {
         }
     }
 
-    async fn prepare_initial_sync_payload(&mut self, user: User) -> Result<Vec<InitialChannelDetails>, Error> {
+    async fn prepare_initial_sync_payload(
+        &mut self,
+        user: User,
+    ) -> Result<Vec<InitialChannelDetails>, Error> {
         let channels = self.get_channels(user).await?;
         let messages = self.get_most_recent_messages(&channels).await?;
-
 
         let mut initial_channels: Vec<InitialChannelDetails> = Vec::new();
 
         for channel in channels {
-            let message = messages.iter().find(|&message| message.channel_id == channel.id);
+            let message = messages
+                .iter()
+                .find(|&message| message.channel_id == channel.id);
             let members = self.get_members(&channel).await?;
 
             initial_channels.push(InitialChannelDetails {
@@ -97,7 +104,10 @@ impl GetInitialSyncActor {
             .map_err(|err| anyhow!(err.to_string()))
     }
 
-    async fn get_most_recent_messages(&mut self, channels: &Vec<Channel>) -> Result<Vec<MessageDetails>, Error> {
+    async fn get_most_recent_messages(
+        &mut self,
+        channels: &Vec<Channel>,
+    ) -> Result<Vec<MessageDetails>, Error> {
         use crate::schema::messages::dsl::*;
 
         let channel_ids: Vec<i32> = channels.iter().map(|channel| channel.id).collect();

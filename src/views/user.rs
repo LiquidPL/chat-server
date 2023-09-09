@@ -18,6 +18,16 @@ impl From<User> for UserDetails {
     }
 }
 
+impl From<UserDetails> for User {
+    fn from(user: UserDetails) -> Self {
+        Self {
+            id: user.id,
+            username: user.username,
+            password: String::from(""),
+        }
+    }
+}
+
 #[derive(Serialize)]
 pub struct UserLogin {
     pub user: UserDetails,

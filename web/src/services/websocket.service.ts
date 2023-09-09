@@ -8,8 +8,15 @@ import {
   MessageDeleted,
   ChannelCreated,
   ChannelDeleted,
+  UserJoined,
 } from "@/models";
-import { deleteChannel, setChannel, setChannels } from "@/state/channels";
+import { setUser } from "@/state/auth";
+import {
+  deleteChannel,
+  selectChannelById,
+  setChannel,
+  setChannels,
+} from "@/state/channels";
 import { addMessage, deleteMessage } from "@/state/messages";
 import { addUser } from "@/state/users";
 import store from "@/store";
@@ -79,6 +86,11 @@ function handleEvent(event: Event<any>) {
       const channelId = (event.data as ChannelDeleted).id;
       store.dispatch(deleteChannel(channelId));
       PubSub.publish(CHANNEL_DELETED, channelId);
+      break;
+    case "UserJoined":
+      console.log(event.data);
+      store.dispatch(setUser((event.data as UserJoined).user));
+      store.dispatch(setChannel((event.data as UserJoined).channel));
       break;
     default:
       break;

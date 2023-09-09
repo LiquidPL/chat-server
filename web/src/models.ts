@@ -61,6 +61,11 @@ export interface MessageDeleted {
   id: number;
 }
 
+export interface UserJoined {
+  channel: Channel;
+  user: User;
+}
+
 export interface Event<T> {
   event_type:
     | "Auth"
@@ -68,6 +73,7 @@ export interface Event<T> {
     | "MessageCreated"
     | "MessageDeleted"
     | "ChannelCreated"
-    | "ChannelDeleted";
+    | "ChannelDeleted"
+    | "UserJoined";
   data: T;
 }
