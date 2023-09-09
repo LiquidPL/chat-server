@@ -1,6 +1,6 @@
 import getConfig from "@/config";
 import { Event, Auth, UserAuthenticated, MessageCreated } from "@/models";
-import { setChannels } from "@/state/channels";
+import { setChannel, setChannels } from "@/state/channels";
 import { addMessage } from "@/state/messages";
 import store from "@/store";
 
@@ -38,8 +38,16 @@ function onMessage(message: MessageEvent<any>) {
 function handleEvent(event: Event<any>) {
   switch (event.event_type) {
     case "UserAuthenticated":
-      const channels = (event.data as UserAuthenticated).channels;
-      store.dispatch(setChannels(channels));
+      const initial_channels = (event.data as UserAuthenticated).channels;
+
+      for (const initial_channel of initial_channels) {
+        store.dispatch(setChannel(initial_channel.channel));
+
+        if (initial_channel.message !== null) {
+          store.dispatch(addMessage(initial_channel.message));
+        }
+      }
+
       break;
     case "MessageCreated":
       const message = (event.data as MessageCreated);

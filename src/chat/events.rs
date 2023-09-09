@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     models::user::UserId,
-    views::{channel::ChannelDetails, message::MessageDetails, user::UserDetails},
+    views::{channel::ChannelDetails, message::MessageDetails, user::UserDetails}, actors::InitialChannelDetails,
 };
 
 #[derive(Clone, Serialize)]
@@ -11,7 +11,7 @@ use crate::{
 pub enum ServerEvent {
     UserAuthenticated {
         user: UserDetails,
-        channels: Vec<ChannelDetails>,
+        channels: Vec<InitialChannelDetails>,
     },
     AuthenticationError {
         error: String,

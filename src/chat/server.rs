@@ -8,12 +8,12 @@ use axum::extract::ws::WebSocket;
 use tokio::sync::{mpsc, oneshot};
 
 use crate::{
-    actors::{GetUserChannelsActorHandle, UserAuthenticated, ValidateTokenActorHandle},
+    actors::{GetInitialSyncActorHandle, UserAuthenticated, ValidateTokenActorHandle, InitialChannelDetails},
     chat::events::ServerEvent,
     config::Config,
     database::Pool,
     models::user::{User, UserId},
-    views::{channel::ChannelDetails, chat::UserStatus},
+    views::chat::UserStatus,
 };
 
 use super::connection::ConnectionHandle;
@@ -154,12 +154,12 @@ impl ChatServer {
             Ok(user_auth) => match user_auth {
                 Some(user_auth) => {
                     let (sender, receiver) =
-                        oneshot::channel::<Result<Vec<ChannelDetails>, Error>>();
+                        oneshot::channel::<Result<Vec<InitialChannelDetails>, Error>>();
 
-                    let get_channels = GetUserChannelsActorHandle::new(self.db_pool.clone());
+                    let get_channels = GetInitialSyncActorHandle::new(self.db_pool.clone());
                     let _ = get_channels
                         .sender
-                        .send(crate::actors::ActorMessage::GetUserChannels {
+                        .send(crate::actors::ActorMessage::GetInitialSync {
                             user: user_auth.user.clone(),
                             respond_to: sender,
                         })

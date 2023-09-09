@@ -3,21 +3,6 @@ export interface User {
   username: string;
 }
 
-export interface Auth {
-  token: string;
-}
-
-export interface UserAuthenticated {
-  user: User;
-  channels: Channel[];
-}
-
-export type MessageCreated = Message;
-
-export interface Event<T> {
-  event_type: "Auth" | "UserAuthenticated" | "MessageCreated";
-  data: T;
-}
 
 export interface Channel {
   id: number;
@@ -37,4 +22,25 @@ export interface Message {
 
 export interface NewMessage {
   content: string,
+}
+
+export interface Auth {
+  token: string;
+}
+
+export interface InitialChannel {
+  channel: Channel,
+  message: Message|null,
+}
+
+export interface UserAuthenticated {
+  user: User;
+  channels: InitialChannel[];
+}
+
+export type MessageCreated = Message;
+
+export interface Event<T> {
+  event_type: "Auth" | "UserAuthenticated" | "MessageCreated";
+  data: T;
 }
