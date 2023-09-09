@@ -1,10 +1,9 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import { Channel } from "@/models";
-import { channel } from "diagnostics_channel";
 
 const channelsAdapter = createEntityAdapter<Channel>();
 
-const initialState = channelsAdapter.getInitialState({});
+const initialState = channelsAdapter.getInitialState();
 
 export const channelsSlice = createSlice({
   name: "channels",

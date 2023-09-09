@@ -2,7 +2,6 @@
 
 import { useAppSelector } from "@/hooks";
 import { selectChannelCount } from "@/state/channels";
-import { useEffect } from "react";
 
 export default function Channels() {
   const channelCount = useAppSelector((state) =>

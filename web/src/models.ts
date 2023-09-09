@@ -8,12 +8,12 @@ export interface Auth {
 }
 
 export interface UserAuthenticated {
-  user: User,
-  channels: Channel[],
+  user: User;
+  channels: Channel[];
 }
 
 export interface Event<T> {
-  event_type: "Auth"|"UserAuthenticated";
+  event_type: "Auth" | "UserAuthenticated";
   data: T;
 }
 
