@@ -1,6 +1,7 @@
 import getConfig from "@/config";
-import { Event, Auth, UserAuthenticated } from "@/models";
+import { Event, Auth, UserAuthenticated, MessageCreated } from "@/models";
 import { setChannels } from "@/state/channels";
+import { addMessage } from "@/state/messages";
 import store from "@/store";
 
 let socket: WebSocket;
@@ -40,6 +41,10 @@ function handleEvent(event: Event<any>) {
       const channels = (event.data as UserAuthenticated).channels;
       store.dispatch(setChannels(channels));
       break;
+    case "MessageCreated":
+      const message = (event.data as MessageCreated);
+      store.dispatch(addMessage(message));
+    case "MessageCreated":
     default:
       break;
   }

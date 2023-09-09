@@ -8,19 +8,20 @@ use axum::{
 
 use tower_http::services::ServeDir;
 
-use crate::{auth::jwt_auth, state::AppState};
 use crate::controllers::{
-        channel::{create_channel, delete_channel, get_channel},
-        message::{create_message, delete_message},
-        user::{create_user, current_user, login, logout},
-        websocket::open_websocket,
-    };
+    channel::{create_channel, delete_channel, get_channel},
+    message::{create_message, delete_message, get_messages},
+    user::{create_user, current_user, login, logout},
+    websocket::open_websocket,
+};
+use crate::{auth::jwt_auth, state::AppState};
 
 pub fn create_router(state: Arc<AppState>) -> Router<Arc<AppState>> {
     Router::new()
         .route("/channels/:channel_id", get(get_channel))
         .route("/channels", post(create_channel))
         .route("/channels/:channel_id", delete(delete_channel))
+        .route("/channels/:channel_id/messages", get(get_messages))
         .route("/channels/:channel_id/messages", post(create_message))
         .route("/users/me", get(current_user))
         .route("/users/logout", post(logout))

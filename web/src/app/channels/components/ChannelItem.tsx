@@ -1,6 +1,8 @@
 "use client";
 
+import { useAppSelector } from "@/hooks";
 import { Channel } from "@/models";
+import { selectLastMessageByChannelId } from "@/state/messages";
 import Link from "next/link";
 
 export default function ChannelItem({
@@ -10,6 +12,8 @@ export default function ChannelItem({
   channel: Channel;
   active?: boolean;
 }) {
+  const latestMessage = useAppSelector(state => selectLastMessageByChannelId(state.messages, channel.id));
+
   const backgroundColor = active ? "bg-gray-100" : "";
 
   return (
@@ -21,7 +25,7 @@ export default function ChannelItem({
           <span className="text-gray-900">{channel.name}</span>
         </div>
         <div className="align-center flex justify-between">
-          <span className="text-sm text-gray-600">test message</span>
+          <span className="text-sm text-gray-600">{latestMessage?.content}</span>
           <span className="text-sm text-gray-600">yesterday</span>
         </div>
       </div>

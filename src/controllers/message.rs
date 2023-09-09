@@ -26,6 +26,57 @@ use crate::{
 
 use super::AppError;
 
+pub async fn get_messages(
+    State(state): State<Arc<AppState>>,
+    Extension(user): Extension<User>,
+    Path(channel_id): Path<i32>,
+) -> Result<Json<Vec<MessageDetails>>, AppError> {
+    use crate::schema::channels::dsl::*;
+
+    let mut conn = state.db_pool.get().await?;
+
+    let channel = match channels
+        .filter(id.eq(channel_id))
+        .select(Channel::as_select())
+        .get_result(&mut conn)
+        .await
+    {
+        Ok(channel) => Ok(channel),
+        Err(err) => match err {
+            diesel::result::Error::NotFound => Err(AppError {
+                status_code: StatusCode::NOT_FOUND,
+                error: anyhow!("not found"),
+            }),
+            err => Err(AppError::new(anyhow!(err))),
+        },
+    }?;
+
+    match ChannelUser::belonging_to(&channel)
+        .inner_join(users::table)
+        .filter(users::id.eq(user.id))
+        .select(User::as_select())
+        .get_result(&mut conn)
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(err) => match err {
+            diesel::result::Error::NotFound => Err(AppError {
+                status_code: StatusCode::FORBIDDEN,
+                error: anyhow!("you don't have access to this channel"),
+            }),
+            err => Err(AppError::new(anyhow!(err))),
+        },
+    }?;
+
+    let messages = messages::table
+        .filter(messages::channel_id.eq(channel_id))
+        .select(MessageDetails::as_select())
+        .load(&mut conn)
+        .await?;
+
+    Ok(Json(messages))
+}
+
 pub async fn create_message(
     State(state): State<Arc<AppState>>,
     Extension(user): Extension<User>,
