@@ -8,7 +8,7 @@ import { selectChannelList } from "@/state/channels";
 
 export default function ChannelList() {
   const params = useParams();
-  const channels = useAppSelector((state) => selectChannelList(state.channels));
+  const channels = useAppSelector((state) => selectChannelList(state));
 
   const activeChannelId = parseInt(params.id as string);
 
@@ -16,11 +16,12 @@ export default function ChannelList() {
     <div className="flex h-screen w-96 flex-col border-r-2 border-solid py-3 pl-3">
       <ChannelListHeader />
       <div className="flex h-full w-full flex-col overflow-auto pr-3">
-        {channels.map((channel) => (
+        {channels.map((channel_item) => (
           <ChannelItem
-            key={channel.id}
-            channel={channel}
-            active={channel.id === activeChannelId}
+            key={channel_item.channel.id}
+            channel={channel_item.channel}
+            message={channel_item.mostRecentMessage}
+            active={channel_item.channel.id === activeChannelId}
           />
         ))}
       </div>

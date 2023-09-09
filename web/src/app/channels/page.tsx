@@ -5,7 +5,7 @@ import { selectChannelCount } from "@/state/channels";
 
 export default function Channels() {
   const channelCount = useAppSelector((state) =>
-    selectChannelCount(state.channels),
+    selectChannelCount(state),
   );
 
   return (

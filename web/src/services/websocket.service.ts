@@ -50,7 +50,7 @@ function handleEvent(event: Event<any>) {
 
       break;
     case "MessageCreated":
-      const message = (event.data as MessageCreated);
+      const message = event.data as MessageCreated;
       store.dispatch(addMessage(message));
     case "MessageCreated":
     default:

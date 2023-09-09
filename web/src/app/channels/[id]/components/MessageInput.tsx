@@ -7,7 +7,7 @@ import { useState } from "react";
 
 export default function MessageInput() {
   const [message, setMessage] = useState("");
-  const accessToken = useAppSelector(state => state.user.accessToken);
+  const accessToken = useAppSelector((state) => state.user.accessToken);
   const params = useParams();
 
   const activeChannelId = parseInt(params.id as string);
@@ -44,7 +44,7 @@ function sendMessage(channelId: number, message: string, accessToken?: string) {
       headers: {
         "Content-Type": "application/json",
         Authorization: "Bearer " + accessToken,
-      }
-    }
-  )
+      },
+    },
+  );
 }
