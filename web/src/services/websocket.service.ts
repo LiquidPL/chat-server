@@ -1,3 +1,4 @@
+import { CHANNEL_DELETED } from "@/app/channels/[id]/page";
 import getConfig from "@/config";
 import {
   Event,
@@ -72,6 +73,7 @@ function handleEvent(event: Event<any>) {
     case "ChannelDeleted":
       const channelId = (event.data as ChannelDeleted).id;
       store.dispatch(deleteChannel(channelId));
+      PubSub.publish(CHANNEL_DELETED, channelId);
       break;
     default:
       break;
