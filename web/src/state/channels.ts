@@ -1,45 +1,26 @@
-import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 import { Channel } from "@/models";
-import { RootState } from "@/store";
+import { channel } from "diagnostics_channel";
 
-export interface ChannelState {
-  [key: number]: Channel;
-}
+const channelsAdapter = createEntityAdapter<Channel>();
 
-const initialState: ChannelState = {};
+const initialState = channelsAdapter.getInitialState({});
 
 export const channelsSlice = createSlice({
   name: "channels",
   initialState,
   reducers: {
-    setChannel: (state, action: PayloadAction<Channel>) => {
-      state[action.payload.id] = action.payload;
-    },
-    deleteChannel: (state, action: PayloadAction<number>) => {
-      if (!(action.payload in state)) {
-        return;
-      }
-
-      delete state[action.payload];
-    },
+    setChannel: channelsAdapter.upsertOne,
+    setChannels: channelsAdapter.upsertMany,
+    deleteChannel: channelsAdapter.removeOne,
   },
 });
 
-export const { setChannel: createChannel, deleteChannel } =
-  channelsSlice.actions;
+export const { setChannel, setChannels, deleteChannel } = channelsSlice.actions;
 
-const selectChannels = (state: RootState) => state.channels;
+const { selectAll, selectTotal } = channelsAdapter.getSelectors();
 
-export const selectChannelList = createSelector(selectChannels, (channels) => {
-  return Object.entries(channels).reduce((acc, [_, value]) => {
-    acc.push(value);
-    return acc;
-  }, [] as Channel[]);
-});
-
-
-export const selectChannelCount = createSelector(selectChannels, (channels) => {
-  return Object.keys(channels).length;
-})
+export const selectChannelList = selectAll;
+export const selectChannelCount = selectTotal;
 
 export default channelsSlice.reducer;

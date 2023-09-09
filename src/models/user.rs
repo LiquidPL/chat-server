@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 pub type UserId = i32;
 
-#[derive(Clone, Queryable, Selectable, sqlx::FromRow)]
+#[derive(Clone, Queryable, Selectable, Identifiable, sqlx::FromRow)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {

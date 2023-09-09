@@ -44,9 +44,7 @@ impl ValidateTokenActor {
         while let Some(ActorMessage::ValidateToken { token, respond_to }) =
             self.receiver.recv().await
         {
-            let validated = self
-                .validate_token(&token)
-                .await;
+            let validated = self.validate_token(&token).await;
 
             let _ = respond_to.send(validated);
         }

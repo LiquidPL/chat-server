@@ -5,15 +5,15 @@ use std::{
 
 use anyhow::{anyhow, Error};
 use axum::extract::ws::WebSocket;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, oneshot};
 
 use crate::{
-    actors::{UserAuthenticated, ValidateTokenActorHandle},
+    actors::{GetUserChannelsActorHandle, UserAuthenticated, ValidateTokenActorHandle},
     chat::events::ServerEvent,
     config::Config,
     database::Pool,
     models::user::{User, UserId},
-    views::chat::UserStatus,
+    views::{channel::ChannelDetails, chat::UserStatus},
 };
 
 use super::connection::ConnectionHandle;
@@ -153,6 +153,32 @@ impl ChatServer {
         match user_auth {
             Ok(user_auth) => match user_auth {
                 Some(user_auth) => {
+                    let (sender, receiver) =
+                        oneshot::channel::<Result<Vec<ChannelDetails>, Error>>();
+
+                    let get_channels = GetUserChannelsActorHandle::new(self.db_pool.clone());
+                    let _ = get_channels
+                        .sender
+                        .send(crate::actors::ActorMessage::GetUserChannels {
+                            user: user_auth.user.clone(),
+                            respond_to: sender,
+                        })
+                        .await;
+
+                    let recv = receiver
+                        .await
+                        .map_err(|err| anyhow!(err.to_string()))
+                        .and_then(|val| val.map_err(|err| anyhow!(err.to_string())));
+
+                    if let Ok(channels) = recv {
+                        let _ = connection
+                            .send_message(ServerEvent::UserAuthenticated {
+                                user: user_auth.user.clone().into(),
+                                channels: channels,
+                            })
+                            .await;
+                    }
+
                     self.connections.insert(
                         user_auth.session_id.clone(),
                         ConnectionState {

@@ -1,13 +1,16 @@
 use std::ops::ControlFlow;
 
-use crate::{actors::{UserAuthenticated, ValidateTokenActorHandle}, models::user::User};
+use crate::{
+    actors::{UserAuthenticated, ValidateTokenActorHandle},
+    models::user::User,
+};
 use anyhow::{anyhow, Error};
 use axum::extract::ws::{Message, WebSocket};
 use futures::{
     stream::{SplitSink, SplitStream},
     SinkExt, StreamExt,
 };
-use rand::{Rng, distributions};
+use rand::{distributions, Rng};
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -37,7 +40,9 @@ impl Connection {
             if self.handle_websocket_message(msg).await.is_break() {
                 let _ = self
                     .disconnect_sender
-                    .send(Command::Disconnect { session_id: self.session_id })
+                    .send(Command::Disconnect {
+                        session_id: self.session_id,
+                    })
                     .await;
                 break;
             }
@@ -52,8 +57,7 @@ impl Connection {
                 if let Ok(event) = event {
                     match event {
                         ClientEvent::Auth { token } => {
-                            let (sender, receiver) =
-                                oneshot::channel::<Result<User, Error>>();
+                            let (sender, receiver) = oneshot::channel::<Result<User, Error>>();
 
                             let _ = self
                                 .validate_token
@@ -64,12 +68,19 @@ impl Connection {
                                 })
                                 .await;
 
-                            let user = receiver.await
+                            let user = receiver
+                                .await
                                 .map_err(|err| anyhow!(err.to_string()))
-                                .and_then(|val| val.map_err(|err| anyhow!(err.to_string()))) ;
+                                .and_then(|val| val.map_err(|err| anyhow!(err.to_string())));
 
                             if let Ok(user) = user {
-                                let _ = self.auth_sender.send(Ok(UserAuthenticated{ user: user.clone(), session_id: self.session_id.clone() })).await;
+                                let _ = self
+                                    .auth_sender
+                                    .send(Ok(UserAuthenticated {
+                                        user: user.clone(),
+                                        session_id: self.session_id.clone(),
+                                    }))
+                                    .await;
                             }
                         }
                     }
@@ -94,7 +105,11 @@ impl ConnectionHandle {
         let (sender, receiver) = socket.split();
 
         let connection = Connection {
-            session_id: rand::thread_rng().sample_iter(distributions::Alphanumeric).take(24).map(char::from).collect(),
+            session_id: rand::thread_rng()
+                .sample_iter(distributions::Alphanumeric)
+                .take(24)
+                .map(char::from)
+                .collect(),
             receiver,
             validate_token,
             auth_sender,

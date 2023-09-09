@@ -5,7 +5,9 @@ import { selectChannelCount } from "@/state/channels";
 import { useEffect } from "react";
 
 export default function Channels() {
-  const channelCount = useAppSelector((state) => selectChannelCount(state));
+  const channelCount = useAppSelector((state) =>
+    selectChannelCount(state.channels),
+  );
 
   return (
     <div className="flex h-full w-full items-center justify-center">

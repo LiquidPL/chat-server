@@ -3,8 +3,18 @@ export interface User {
   username: string;
 }
 
-export interface UserAuth {
+export interface Auth {
   token: string;
+}
+
+export interface UserAuthenticated {
+  user: User,
+  channels: Channel[],
+}
+
+export interface Event<T> {
+  event_type: "Auth"|"UserAuthenticated";
+  data: T;
 }
 
 export interface Channel {
